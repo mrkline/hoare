@@ -1,0 +1,7 @@
+resolver: lts-23.17
+
+packages:
+- .
+
+ghc-options:
+  "$everything": -O2

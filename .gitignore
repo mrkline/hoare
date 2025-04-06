@@ -1,0 +1,6 @@
+*.eventlog
+*.hi
+*.o
+*.prof
+/.stack-work/
+/dist-newstyle/
