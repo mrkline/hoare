@@ -6,6 +6,7 @@ module Control.Concurrent.Channel(
     evalWriteChannel,
     evalWriteChannel',
     consumeChannel,
+    stateConsumeChannel,
     feedChannel,
     evalFeedChannel,
     pipeline,
@@ -71,6 +72,15 @@ consumeChannel c f = atomically (readChannel c) >>= \case
         res <- f v
         mappend res <$!> consumeChannel c f
     Nothing -> pure mempty
+
+-- | Consume the given channel until it closes,
+-- with each action updating some state. Returns the final state.
+stateConsumeChannel :: (Channel c) => c a -> s -> (s -> a -> IO s) -> IO s
+stateConsumeChannel c state f = atomically (readChannel c) >>= \case
+    Just v -> do
+        next <- f state v
+        stateConsumeChannel c next f
+    Nothing -> pure state
 
 feedChannel' :: (Channel c) => c a -> IO (Maybe a) -> IO ()
 feedChannel' c f = f >>= \case
