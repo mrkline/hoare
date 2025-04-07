@@ -4,8 +4,8 @@ synopsis: Simple tools for communicating sequential processes
 description:
     Hoare was right—many concurrent programs can be simply expressed
     as a series of concurrent actors (threads) consuming and producing
-    messages. Haskell provides uniquely good tools for doing so
-    (green threads and STM). This package provides:
+    messages. Haskell provides uniquely great tools (green threads and STM)
+    for doing so. This package provides:
 
     - Functions for using bounded STM types like
       `TBQueue` and `TMVar` as /channels/ between threads.
@@ -17,6 +17,11 @@ author: Matt Kline
 maintainer: matt@bitbashing.io
 category: Concurrency
 build-type: Simple
+tested-with: GHC==9.8.4
+
+source-repository head
+    type:     git
+    location: https://github.com/mrkline/hoare
 
 common shared
     ghc-options: -Weverything
@@ -50,7 +55,7 @@ library
                      Control.Concurrent.Channel.Endless
                      Control.Concurrent.TBCQueue
     hs-source-dirs: lib
-    build-depends: base,
-                   async,
-                   deepseq,
-                   stm,
+    build-depends: base >=4.4 && < 5,
+                   async >= 2.2 && < 3,
+                   deepseq >= 1.5 && < 2,
+                   stm >= 2.5 && < 3,
