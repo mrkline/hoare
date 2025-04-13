@@ -47,6 +47,8 @@ writeTBCQueue c !v = do
     when stillOpen $ writeTBQueue c.q v
     pure stillOpen
 
+-- | Closes the queue so that future writes are no-ops and readers get @Nothing@
+-- after all values currently inside have been read.
 closeTBCQueue :: TBCQueue a -> STM ()
 closeTBCQueue c = writeTVar c.open False
 
@@ -56,5 +58,8 @@ isOpenTBCQueue c = readTVar c.open
 isClosedTBCQueue :: TBCQueue a -> STM Bool
 isClosedTBCQueue = fmap not . isOpenTBCQueue
 
+-- | The number of items currently in the queue.
+--
+-- Be careful using this outside the current STM transaction as it is obviously racy.
 lengthTBCQueue :: TBCQueue a -> STM Natural
 lengthTBCQueue c = lengthTBQueue c.q

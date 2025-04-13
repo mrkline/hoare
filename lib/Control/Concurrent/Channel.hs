@@ -21,10 +21,16 @@ import Control.DeepSeq
 import Control.Monad
 
 class Channel c where
+    -- | Returns @Just value@ until the channel is closed, blocking for the next value.
     readChannel :: c a -> STM (Maybe a)
 
+    -- | Writes the given value to the channel if it's still open.
+    --
+    -- Returns whether the channel is still open so producers know when consumers no longer care.
     writeChannel :: c a -> a -> STM Bool
 
+    -- | Closes the channel so that future writes are no-ops and readers get @Nothing@
+    -- after all values currently inside have been read.
     closeChannel :: c a -> STM ()
 
     isClosedChannel :: c a -> STM Bool

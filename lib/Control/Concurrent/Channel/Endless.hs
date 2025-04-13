@@ -2,7 +2,7 @@
 -- with endless channels.
 --
 -- Many useful programs have no end to their input—they run in a steady state until killed.
--- This module provides the same utilities as `Control.Concurrent.Channel`,
+-- This module provides the same utilities as "Control.Concurrent.Channel",
 -- but for standard STM types we know and love.
 module Control.Concurrent.Channel.Endless(
     Channel (..),
