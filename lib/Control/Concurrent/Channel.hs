@@ -73,11 +73,12 @@ evalWriteChannel' c v = do
 -- | Consume the given channel until it closes,
 -- passing values to the given action and collecting its results.
 consumeChannel :: (Channel c, Monoid m) => c a -> (a -> IO m) -> IO m
-consumeChannel c f = atomically (readChannel c) >>= \case
-    Just v -> do
-        res <- f v
-        mappend res <$!> consumeChannel c f
-    Nothing -> pure mempty
+consumeChannel c f = go mempty where
+    go !acc = atomically (readChannel c) >>= \case
+        Just v -> do
+            res <- f v
+            go $ acc <> res
+        Nothing -> pure acc
 
 -- | Consume the given channel until it closes,
 -- with each action updating some state. Returns the final state.
