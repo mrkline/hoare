@@ -53,6 +53,7 @@ writeChannel' :: (Channel c) => c a -> a -> STM ()
 writeChannel' c v = do
     o <- writeChannel c v
     unless o $ error "absurd: writeChannel' on closed channel"
+{-# INLINE writeChannel' #-}
 
 -- | Force a value to normal form before writing it to the given channel.
 --
@@ -63,12 +64,14 @@ evalWriteChannel :: (Channel c, NFData a) => c a -> a -> IO Bool
 evalWriteChannel c v = do
     v' <- evaluate $ force v
     atomically $ writeChannel c v'
+{-# INLINE evalWriteChannel #-}
 
 -- | `writeChannel'` meets `evalWriteChannel`
 evalWriteChannel' :: (Channel c, NFData a) => c a -> a -> IO ()
 evalWriteChannel' c v = do
     v' <- evaluate $ force v
     atomically $ writeChannel' c v'
+{-# INLINE evalWriteChannel' #-}
 
 -- | Consume the given channel until it closes,
 -- passing values to the given action and collecting its results.

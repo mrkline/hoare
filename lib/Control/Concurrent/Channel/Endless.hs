@@ -39,6 +39,7 @@ evalWriteChannel :: (Channel c, NFData a) => c a -> a -> IO ()
 evalWriteChannel c v = do
     v' <- evaluate $ force v
     atomically $ writeChannel c v'
+{-# INLINE evalWriteChannel #-}
 
 consumeChannel :: (Channel c) => c a -> (a -> IO ()) -> IO ()
 consumeChannel c f = forever $ atomically (readChannel c) >>= f
