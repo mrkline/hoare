@@ -83,7 +83,7 @@ consumeChannel c f = go mempty where
 -- | Consume the given channel until it closes,
 -- with each action updating some state. Returns the final state.
 stateConsumeChannel :: (Channel c) => c a -> s -> (s -> a -> IO s) -> IO s
-stateConsumeChannel c state f = atomically (readChannel c) >>= \case
+stateConsumeChannel c !state f = atomically (readChannel c) >>= \case
     Just v -> do
         next <- f state v
         stateConsumeChannel c next f
