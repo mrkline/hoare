@@ -11,7 +11,7 @@ description:
       `TBQueue` and `TMVar` as /channels/ between threads.
 
     - A /closeable/ @TBCQueue@ for programs where the input ends.
-version: 0.1.0.0
+version: 0.1.1.0
 license: Zlib
 author: Matt Kline
 maintainer: matt@bitbashing.io
