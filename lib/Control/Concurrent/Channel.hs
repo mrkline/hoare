@@ -148,7 +148,8 @@ pipeline :: (Channel c) => IO (c a) -> (c a -> IO x) -> (c a -> IO y) -> IO (x, 
 pipeline new producer consumer = do
     c <- new
     let producer' = producer c `finally` atomically (closeChannel c)
-    concurrently producer' (consumer c)
+    let consumer' = consumer c `finally` atomically (closeChannel c)
+    concurrently producer' consumer'
 
 -- | `pipeline`, but ignore the results.
 pipeline_ :: (Channel c) => IO (c a) -> (c a -> IO x) -> (c a -> IO y) -> IO ()
