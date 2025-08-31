@@ -1,4 +1,4 @@
-let haskellSrc = builtins.fetchTarball "https://github.com/input-output-hk/haskell.nix/archive/2dac115ec1ef9265aa608b226f3f4c96ce6a277c.tar.gz";
+let haskellSrc = builtins.fetchTarball "https://github.com/input-output-hk/haskell.nix/archive/6a8eaba643320340ca56648c055148d1d4c64e1c.tar.gz";
     haskellNix = import haskellSrc {};
     # Import nixpkgs and pass the haskell.nix provided nixpkgsArgs
     pkgs = import

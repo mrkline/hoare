@@ -11,13 +11,14 @@ description:
       `TBQueue` and `TMVar` as /channels/ between threads.
 
     - A /closeable/ @TBCQueue@ for programs where the input ends.
-version: 0.1.1.0
+version: 0.1.2.0
 license: Zlib
 author: Matt Kline
 maintainer: matt@bitbashing.io
 category: Concurrency
 build-type: Simple
-tested-with: GHC==9.8.4
+tested-with:  GHC==9.8.4
+            , GHC==9.10.2
 
 source-repository head
     type:     git
@@ -52,7 +53,9 @@ library
     import: shared
     exposed-modules: Control.Concurrent.Channel
                      Control.Concurrent.Channel.Endless
+                     Control.Concurrent.Channel.Try
                      Control.Concurrent.TBCQueue
+
     hs-source-dirs: lib
     build-depends: base >=4.4 && < 5,
                    async >= 2.2 && < 3,

@@ -2,6 +2,9 @@
 -- with closeable channels.
 module Control.Concurrent.Channel(
     Channel (..),
+    TryRead (..),
+    readChannel,
+    drainChannel,
     writeChannel',
     evalWriteChannel,
     evalWriteChannel',
@@ -14,6 +17,7 @@ module Control.Concurrent.Channel(
 ) where
 
 import Control.Concurrent.Async
+import Control.Concurrent.Channel.Try
 import Control.Concurrent.STM
 import Control.Concurrent.TBCQueue
 import Control.Exception
@@ -21,8 +25,8 @@ import Control.DeepSeq
 import Control.Monad
 
 class Channel c where
-    -- | Returns @Just value@ until the channel is closed, blocking for the next value.
-    readChannel :: c a -> STM (Maybe a)
+    -- | Reads the channel without blocking, producing a value, empty, or closed.
+    tryReadChannel :: c a -> STM (TryRead a)
 
     -- | Writes the given value to the channel if it's still open.
     --
@@ -36,7 +40,7 @@ class Channel c where
     isClosedChannel :: c a -> STM Bool
 
 instance Channel TBCQueue where
-    readChannel = readTBCQueue
+    tryReadChannel = tryReadTBCQueue
 
     writeChannel = writeTBCQueue
 
@@ -45,6 +49,28 @@ instance Channel TBCQueue where
     isClosedChannel = isClosedTBCQueue
 
 -- More to follow? A TMVar-like closeable slot?
+
+-- | Reads from the channel, blocking if it is empty.
+--   Returns @Nothing@ if the channel is empty and closed.
+readChannel :: (Channel c) => c a -> STM (Maybe a)
+readChannel c = tryReadChannel c >>= \case
+    Ready v -> pure $ Just v
+    Empty -> retry
+    Closed -> pure $ Nothing
+{-# INLINE readChannel #-}
+
+-- | Drains the channel, blocking it if is empty.
+--   Returns @[]@ if the channel is empty and closed.
+--
+--   Useful for accumulating values to pass in bulk to an expensive operation,
+--   like a @send()@ syscall.
+drainChannel :: (Channel c) => c a -> STM [a]
+drainChannel c = go [] where
+    go acc = tryReadChannel c >>= \case
+        Ready v -> go (v : acc)
+        Empty -> if null acc then retry else pure (reverse acc)
+        Closed -> pure (reverse acc)
+{-# INLINEABLE drainChannel #-}
 
 -- | Writes to the channel, asserting that it hasn't been closed.
 --

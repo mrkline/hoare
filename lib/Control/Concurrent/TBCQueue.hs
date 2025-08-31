@@ -3,7 +3,7 @@ module Control.Concurrent.TBCQueue(
     TBCQueue,
     newTBCQueue,
     newTBCQueueIO,
-    readTBCQueue,
+    tryReadTBCQueue,
     writeTBCQueue,
     closeTBCQueue,
     isOpenTBCQueue,
@@ -11,6 +11,7 @@ module Control.Concurrent.TBCQueue(
     lengthTBCQueue
 ) where
 
+import Control.Concurrent.Channel.Try
 import Control.Concurrent.STM
 import Control.Monad
 import Numeric.Natural
@@ -26,17 +27,17 @@ newTBCQueue n = TBCQueue <$> newTBQueue n <*> newTVar True
 newTBCQueueIO :: Natural -> IO (TBCQueue a)
 newTBCQueueIO = atomically . newTBCQueue
 
--- | Returns @Just value@ until the queue is closed, blocking for the next value.
-readTBCQueue :: TBCQueue a -> STM (Maybe a)
-readTBCQueue c = do
+-- | Reads the queue without blocking, producing a value, empty, or closed.
+tryReadTBCQueue :: TBCQueue a -> STM (TryRead a)
+tryReadTBCQueue c = do
     mv <- tryReadTBQueue c.q
     case mv of
-        Just v -> pure $ Just v
+        Just v -> pure $ Ready v
         Nothing -> do
             stillOpen <- readTVar c.open
             if stillOpen
-                then retry
-                else pure Nothing
+                then pure Empty
+                else pure Closed
 
 -- | Writes the given value to the queue if it's still open.
 --
