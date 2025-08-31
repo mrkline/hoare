@@ -3,11 +3,13 @@
 module Control.Concurrent.Channel(
     Channel (..),
     TryRead (..),
+    TryWrite (..),
     readChannel,
     drainChannel,
     writeChannel',
     evalWriteChannel,
     evalWriteChannel',
+    tryWriteChannel,
     consumeChannel,
     stateConsumeChannel,
     feedChannel,
@@ -37,7 +39,11 @@ class Channel c where
     -- after all values currently inside have been read.
     closeChannel :: c a -> STM ()
 
+    isEmptyChannel :: c a -> STM Bool
+
     isClosedChannel :: c a -> STM Bool
+
+    isFullChannel :: c a -> STM Bool
 
 instance Channel TBCQueue where
     tryReadChannel = tryReadTBCQueue
@@ -46,7 +52,11 @@ instance Channel TBCQueue where
 
     closeChannel = closeTBCQueue
 
+    isEmptyChannel = isEmptyTBCQueue
+
     isClosedChannel = isClosedTBCQueue
+
+    isFullChannel = isFullTBCQueue
 
 -- More to follow? A TMVar-like closeable slot?
 
@@ -56,7 +66,7 @@ readChannel :: (Channel c) => c a -> STM (Maybe a)
 readChannel c = tryReadChannel c >>= \case
     Ready v -> pure $ Just v
     Empty -> retry
-    Closed -> pure $ Nothing
+    ReadClosed -> pure Nothing
 {-# INLINE readChannel #-}
 
 -- | Drains the channel, blocking it if is empty.
@@ -69,8 +79,17 @@ drainChannel c = go [] where
     go acc = tryReadChannel c >>= \case
         Ready v -> go (v : acc)
         Empty -> if null acc then retry else pure (reverse acc)
-        Closed -> pure (reverse acc)
+        ReadClosed -> pure (reverse acc)
 {-# INLINEABLE drainChannel #-}
+
+tryWriteChannel :: (Channel c) => c a -> a -> STM TryWrite
+tryWriteChannel c v = do
+    full <- isFullChannel c
+    if full
+        then pure Full
+        else do
+            wrote <- writeChannel c v
+            pure $ if wrote then Wrote else WriteClosed
 
 -- | Writes to the channel, asserting that it hasn't been closed.
 --

@@ -8,6 +8,8 @@ module Control.Concurrent.TBCQueue(
     closeTBCQueue,
     isOpenTBCQueue,
     isClosedTBCQueue,
+    isEmptyTBCQueue,
+    isFullTBCQueue,
     lengthTBCQueue
 ) where
 
@@ -37,7 +39,7 @@ tryReadTBCQueue c = do
             stillOpen <- readTVar c.open
             if stillOpen
                 then pure Empty
-                else pure Closed
+                else pure ReadClosed
 
 -- | Writes the given value to the queue if it's still open.
 --
@@ -58,6 +60,12 @@ isOpenTBCQueue c = readTVar c.open
 
 isClosedTBCQueue :: TBCQueue a -> STM Bool
 isClosedTBCQueue = fmap not . isOpenTBCQueue
+
+isEmptyTBCQueue :: TBCQueue a -> STM Bool
+isEmptyTBCQueue c = isEmptyTBQueue c.q
+
+isFullTBCQueue :: TBCQueue a -> STM Bool
+isFullTBCQueue c = isFullTBQueue c.q
 
 -- | The number of items currently in the queue.
 --
